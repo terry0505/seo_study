@@ -1,0 +1,99 @@
+@use '@/styles/mixins' as m;
+
+.container {
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 28px;
+  color: var(--text);
+  @media (max-width: 640px) {
+    padding: 28px 14px;
+  }
+}
+
+.groups {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.group {
+  /* grid children */
+}
+
+.groupTitle {
+  margin: 0 0 12px;
+  font-weight: 700;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.keyword {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.colorInput {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+}
+
+.colorTextInput {
+  width: 90px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.keywordInput {
+  flex: 1;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.button {
+  @include m.soft-border;
+  padding: 6px 12px;
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+
+  &:hover {
+    background: var(--primary-600);
+  }
+}
+
+.backButton {
+  display: inline-block;
+  margin-top: 20px;
+}
