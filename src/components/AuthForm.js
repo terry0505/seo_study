@@ -1,50 +1,50 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { auth, googleProvider, db } from '@/firebaseClient';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { auth, googleProvider, db } from "@/firebaseClient";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  updateProfile,
-} from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import styles from './AuthForm.module.scss';
+  updateProfile
+} from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import styles from "./AuthForm.module.scss";
 
 export default function AuthForm({ mode }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [nickname, setNickname] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     try {
-      if (mode === 'login') {
+      if (mode === "login") {
         const cred = await signInWithEmailAndPassword(auth, email, password);
         await setDoc(
-          doc(db, 'users', cred.user.uid),
+          doc(db, "users", cred.user.uid),
           {
             email: cred.user.email,
-            displayName: cred.user.displayName || '',
+            displayName: cred.user.displayName || ""
           },
           { merge: true }
         );
         // 원하면 로그인 후 이동
         // router.replace('/');
       } else {
-        if (!email.toLowerCase().endsWith('@nextstudy.net')) {
-          setError('자사 메일 계정으로만 회원가입이 가능합니다.');
+        if (!email.toLowerCase().endsWith("@nextstudy.net")) {
+          setError("자사 메일 계정으로만 회원가입이 가능합니다.");
           return;
         }
         if (password !== confirmPassword) {
-          setError('비밀번호가 일치하지 않습니다.');
+          setError("비밀번호가 일치하지 않습니다.");
           return;
         }
         const cred = await createUserWithEmailAndPassword(
@@ -56,10 +56,10 @@ export default function AuthForm({ mode }) {
           await updateProfile(cred.user, { displayName: nickname });
         }
         await setDoc(
-          doc(db, 'users', cred.user.uid),
+          doc(db, "users", cred.user.uid),
           {
             email: cred.user.email,
-            displayName: nickname || cred.user.displayName || '',
+            displayName: nickname || cred.user.displayName || ""
           },
           { merge: true }
         );
@@ -68,7 +68,7 @@ export default function AuthForm({ mode }) {
         // router.replace('/');
       }
     } catch (err) {
-      setError(err?.message || '로그인/회원가입 중 오류가 발생했습니다.');
+      setError(err?.message || "로그인/회원가입 중 오류가 발생했습니다.");
     }
   };
 
@@ -76,7 +76,7 @@ export default function AuthForm({ mode }) {
     <>
       <div className={styles.container}>
         <h1 className={styles.title}>
-          {mode === 'login' ? '로그인' : '회원가입'}
+          {mode === "login" ? "로그인" : "회원가입"}
         </h1>
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -96,7 +96,7 @@ export default function AuthForm({ mode }) {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          {mode === 'signup' && (
+          {mode === "signup" && (
             <input
               className={styles.input}
               type="password"
@@ -106,7 +106,7 @@ export default function AuthForm({ mode }) {
               required
             />
           )}
-          {mode === 'signup' && (
+          {mode === "signup" && (
             <input
               className={styles.input}
               type="text"
@@ -116,11 +116,11 @@ export default function AuthForm({ mode }) {
             />
           )}
           <button type="submit" className={styles.submitButton}>
-            {mode === 'login' ? '로그인' : '회원가입'}
+            {mode === "login" ? "로그인" : "회원가입"}
           </button>
         </form>
 
-        {mode === 'signup' ? (
+        {mode === "signup" ? (
           <p className={styles.notice}>
             ※ 자사 메일(@nextstudy.net) 계정으로만 <br />
             회원가입이 가능합니다.
@@ -134,7 +134,7 @@ export default function AuthForm({ mode }) {
 
         {error && <p className={styles.error}>{error}</p>}
 
-        {mode === 'login' ? (
+        {mode === "login" ? (
           <p className={styles.switch}>
             계정이 없나요? <Link href="/signup">회원가입</Link>
           </p>

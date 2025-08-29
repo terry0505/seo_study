@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import useKeywordPermission from '@/hooks/useKeywordPermission';
-import dynamic from 'next/dynamic';
-import styles from './page.module.scss';
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import useKeywordPermission from "@/hooks/useKeywordPermission";
+import dynamic from "next/dynamic";
+import styles from "./page.module.scss";
 
-const ReactECharts = dynamic(() => import('echarts-for-react'), {
-  ssr: false,
+const ReactECharts = dynamic(() => import("echarts-for-react"), {
+  ssr: false
 });
 
 // ===== Firebase (client) =====
@@ -19,9 +19,9 @@ import {
   onSnapshot,
   serverTimestamp,
   query,
-  orderBy,
-} from 'firebase/firestore';
-import { db } from '@/firebaseClient';
+  orderBy
+} from "firebase/firestore";
+import { db } from "@/firebaseClient";
 
 // ====== Utils ======
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
@@ -30,27 +30,27 @@ const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 function getToday(base = new Date()) {
   const date = new Date(base);
   const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 }
 
 function getThemeVars() {
-  if (typeof window === 'undefined') {
-    return { text: '#000000', line: '#e5e7eb', panel: '#ffffff' };
+  if (typeof window === "undefined") {
+    return { text: "#000000", line: "#e5e7eb", panel: "#ffffff" };
   }
   const styles = getComputedStyle(document.documentElement);
   return {
-    text: styles.getPropertyValue('--text').trim() || '#000000',
-    line: styles.getPropertyValue('--line').trim() || '#e5e7eb',
-    panel: styles.getPropertyValue('--panel').trim() || '#ffffff',
+    text: styles.getPropertyValue("--text").trim() || "#000000",
+    line: styles.getPropertyValue("--line").trim() || "#e5e7eb",
+    panel: styles.getPropertyValue("--panel").trim() || "#ffffff"
   };
 }
 
 /** 비고 줄바꿈 처리 */
 function renderNote(note) {
-  if (!note || !note.trim()) return '없음';
-  return note.split('\n').map((line, idx) => (
+  if (!note || !note.trim()) return "없음";
+  return note.split("\n").map((line, idx) => (
     <span key={idx}>
       {line}
       <br />
@@ -61,14 +61,14 @@ function renderNote(note) {
 /** rank 표시 텍스트 */
 function rankText(value) {
   const rank = getRankValue(value);
-  if (rank === '오류 발생') return { primary: '오류 발생', detail: '' };
-  if (rank === 'N/A' || rank === null || rank === undefined)
-    return { primary: '순위 없음', detail: '' };
+  if (rank === "오류 발생") return { primary: "오류 발생", detail: "" };
+  if (rank === "N/A" || rank === null || rank === undefined)
+    return { primary: "순위 없음", detail: "" };
   const count =
-    typeof value === 'object' && value.top10Count > 1 ? value.top10Count : 0;
+    typeof value === "object" && value.top10Count > 1 ? value.top10Count : 0;
   return {
     primary: `${rank}위`,
-    detail: count ? `10위 내 포함 ${count}건` : '',
+    detail: count ? `10위 내 포함 ${count}건` : ""
   };
 }
 
@@ -76,18 +76,18 @@ function rankText(value) {
 async function fetchRank(keyword) {
   try {
     const res = await fetch(`/api/rank/${encodeURIComponent(keyword)}`, {
-      method: 'GET',
+      method: "GET"
     });
-    if (!res.ok) throw new Error('검색 실패');
+    if (!res.ok) throw new Error("검색 실패");
     const data = await res.json();
     return {
       keyword,
-      rank: data.activeRank ?? 'N/A',
-      source: data.sourceUrl || '',
-      top10Count: data.top10Count || 0,
+      rank: data.activeRank ?? "N/A",
+      source: data.sourceUrl || "",
+      top10Count: data.top10Count || 0
     };
   } catch {
-    return { keyword, rank: '오류 발생', source: '', top10Count: 0 };
+    return { keyword, rank: "오류 발생", source: "", top10Count: 0 };
   }
 }
 
@@ -104,7 +104,7 @@ async function fetchSequentially(
 
   // 최초: 로딩 표기
   for (const kw of keywords) {
-    onUpdate(kw, 'loading', '', 0); // UI에서 "데이터 로드 중..." 같은 표기
+    onUpdate(kw, "loading", "", 0); // UI에서 "데이터 로드 중..." 같은 표기
   }
 
   for (const kw of keywords) {
@@ -113,7 +113,7 @@ async function fetchSequentially(
     sources[r.keyword] = r.source;
     counts[r.keyword] = r.top10Count;
     onUpdate(r.keyword, r.rank, r.source, r.top10Count);
-    if (r.rank === '오류 발생') failed.push(r.keyword);
+    if (r.rank === "오류 발생") failed.push(r.keyword);
     await delay(1000); // 서버 부하 방지
   }
 
@@ -122,13 +122,13 @@ async function fetchSequentially(
     const retryTargets = [...failed];
     failed = [];
     for (const kw of retryTargets) {
-      onUpdate(kw, 'loading', '', 0);
+      onUpdate(kw, "loading", "", 0);
       const r = await fetchRank(kw);
       results[r.keyword] = r.rank;
       sources[r.keyword] = r.source;
       counts[r.keyword] = r.top10Count;
       onUpdate(r.keyword, r.rank, r.source, r.top10Count);
-      if (r.rank === '오류 발생') failed.push(r.keyword);
+      if (r.rank === "오류 발생") failed.push(r.keyword);
       await delay(1000);
     }
     retryCount -= 1;
@@ -139,8 +139,8 @@ async function fetchSequentially(
 
 /** Firestore: 저장 */
 async function logSeoData({ date, note, rankings }) {
-  if (!db) throw new Error('Firebase가 초기화되지 않았습니다.');
-  const ref = doc(db, 'seoRanks', date); // 날짜를 문서 ID로
+  if (!db) throw new Error("Firebase가 초기화되지 않았습니다.");
+  const ref = doc(db, "seoRanks", date); // 날짜를 문서 ID로
   await setDoc(
     ref,
     {
@@ -148,7 +148,7 @@ async function logSeoData({ date, note, rankings }) {
       note,
       rankings,
       updatedAt: serverTimestamp(),
-      createdAt: serverTimestamp(),
+      createdAt: serverTimestamp()
     },
     { merge: true }
   );
@@ -157,9 +157,17 @@ async function logSeoData({ date, note, rankings }) {
 
 /** Firestore: 삭제 */
 async function deleteSeoData(date) {
-  if (!db) throw new Error('Firebase가 초기화되지 않았습니다.');
-  const ref = doc(db, 'seoRanks', date);
+  if (!db) throw new Error("Firebase가 초기화되지 않았습니다.");
+  const ref = doc(db, "seoRanks", date);
   await deleteDoc(ref);
+  return true;
+}
+
+/** Firestore: 비고 수정 */
+async function updateSeoNote(date, note) {
+  if (!db) throw new Error("Firebase가 초기화되지 않았습니다.");
+  const ref = doc(db, "seoRanks", date);
+  await setDoc(ref, { note, updatedAt: serverTimestamp() }, { merge: true });
   return true;
 }
 
@@ -168,7 +176,7 @@ function useSeoDataRealtime() {
   const [data, setData] = useState({});
   useEffect(() => {
     if (!db) return;
-    const q = query(collection(db, 'seoRanks'), orderBy('date', 'desc'));
+    const q = query(collection(db, "seoRanks"), orderBy("date", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       const obj = {};
       snap.forEach((docSnap) => {
@@ -182,26 +190,23 @@ function useSeoDataRealtime() {
 }
 
 function getRankValue(r) {
-  return typeof r === 'object' ? r?.rank : r;
+  return typeof r === "object" ? r?.rank : r;
 }
 
+function clampRank(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num) || num <= 0) return 50;
+  return Math.min(num, 50);
+}
 function renderChange(curr, prev) {
-  const c = getRankValue(curr);
-  const p = getRankValue(prev);
-  if (
-    c === null ||
-    p === null ||
-    c === undefined ||
-    p === undefined ||
-    c === 'loading' ||
-    p === 'loading' ||
-    typeof c !== 'number' ||
-    typeof p !== 'number'
-  )
-    return null;
+  const cRaw = Number(getRankValue(curr));
+  const pRaw = Number(getRankValue(prev));
+  if (!Number.isFinite(cRaw) || !Number.isFinite(pRaw)) return null;
+  const c = clampRank(cRaw);
+  const p = clampRank(pRaw);
   const diff = p - c;
   if (diff === 0) return <span className={styles.rankChange}>(-)</span>;
-  const symbol = diff > 0 ? '▲' : '▼';
+  const symbol = diff > 0 ? "▲" : "▼";
   const cls = diff > 0 ? styles.rankChangeUp : styles.rankChangeDown;
   return (
     <span className={`${styles.rankChange} ${cls}`}>
@@ -216,7 +221,7 @@ export default function Home() {
   const { user } = useAuth();
   const hasPermission = useKeywordPermission();
   const [date, setDate] = useState(getToday());
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState("");
   const [gongKeywords, setGongKeywords] = useState([]);
   const [sobangKeywords, setSobangKeywords] = useState([]);
   const [gongColors, setGongColors] = useState({});
@@ -231,12 +236,12 @@ export default function Home() {
   const [isSobangDone, setIsSobangDone] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState("light");
   const [isNotProdDomain, setIsNotProdDomain] = useState(false);
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       setIsNotProdDomain(
-        window.location.origin !== 'https://nextstudy-seo.vercel.app'
+        window.location.origin !== "https://nextstudy-seo.vercel.app"
       );
     }
   }, []);
@@ -246,15 +251,15 @@ export default function Home() {
 
   useEffect(() => {
     const current =
-      document.documentElement.getAttribute('data-theme') || 'light';
+      document.documentElement.getAttribute("data-theme") || "light";
     setTheme(current);
     const observer = new MutationObserver(() => {
-      const t = document.documentElement.getAttribute('data-theme') || 'light';
+      const t = document.documentElement.getAttribute("data-theme") || "light";
       setTheme(t);
     });
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['data-theme'],
+      attributeFilter: ["data-theme"]
     });
     return () => observer.disconnect();
   }, []);
@@ -265,28 +270,31 @@ export default function Home() {
   const [openCards, setOpenCards] = useState({});
   const [modalKeyword, setModalKeyword] = useState(null);
   const [modalGroup, setModalGroup] = useState(null);
+  const [editingDate, setEditingDate] = useState(null);
+  const [editingNote, setEditingNote] = useState("");
+  const [noteSaving, setNoteSaving] = useState(false);
 
   useEffect(() => {
     if (!db) return;
-    const unsubG = onSnapshot(doc(db, 'keywords', 'gong'), (snap) => {
+    const unsubG = onSnapshot(doc(db, "keywords", "gong"), (snap) => {
       const list = (snap.data()?.list || []).map((item) =>
-        typeof item === 'string' ? { keyword: item, color: '#000000' } : item
+        typeof item === "string" ? { keyword: item, color: "#000000" } : item
       );
       setGongKeywords(list.map((item) => item.keyword));
       const colors = {};
       list.forEach((item) => {
-        colors[item.keyword] = item.color || '#000000';
+        colors[item.keyword] = item.color || "#000000";
       });
       setGongColors(colors);
     });
-    const unsubS = onSnapshot(doc(db, 'keywords', 'sobang'), (snap) => {
+    const unsubS = onSnapshot(doc(db, "keywords", "sobang"), (snap) => {
       const list = (snap.data()?.list || []).map((item) =>
-        typeof item === 'string' ? { keyword: item, color: '#000000' } : item
+        typeof item === "string" ? { keyword: item, color: "#000000" } : item
       );
       setSobangKeywords(list.map((item) => item.keyword));
       const colors = {};
       list.forEach((item) => {
-        colors[item.keyword] = item.color || '#000000';
+        colors[item.keyword] = item.color || "#000000";
       });
       setSobangColors(colors);
     });
@@ -302,68 +310,60 @@ export default function Home() {
     const {
       text: textColor,
       line: lineColor,
-      panel: panelColor,
+      panel: panelColor
     } = getThemeVars();
     const sorted = [...seoEntries].sort((a, b) => a[0].localeCompare(b[0]));
     const limited = sorted.slice(-chartLimit);
     const dates = limited.map(([d]) => d);
     const buildLineOptions = (keywords, group) => {
-      let maxRank = 1;
       const rawSeries = keywords.map((kw) => {
         const data = limited.map(([, details]) => {
           const r = details?.rankings?.[group]?.[kw];
-          const val = getRankValue(r);
-          const num = typeof val === 'number' ? val : null;
-          if (num !== null) maxRank = Math.max(maxRank, num);
-          return num;
+          return clampRank(getRankValue(r));
         });
-        return { name: kw, type: 'line', data };
+        return { name: kw, type: "line", data };
       });
-      const finalMax = maxRank + 1;
-      const series = rawSeries.map((s) => ({
-        ...s,
-        data: s.data.map((v) => (v == null ? finalMax : v)),
-      }));
+      const series = rawSeries.filter((s) => s.data.some((v) => v != null));
       const selected = {};
-      keywords.forEach((kw, idx) => {
-        selected[kw] = idx < 5;
+      series.forEach((s, idx) => {
+        selected[s.name] = idx < 5;
       });
-      const colorMap = group === 'gong' ? gongColors : sobangColors;
-      const color = keywords.map((kw) => colorMap[kw] || '#000000');
+      const colorMap = group === "gong" ? gongColors : sobangColors;
+      const color = series.map((s) => colorMap[s.name] || "#000000");
       return {
         tooltip: {
-          trigger: 'axis',
+          trigger: "axis",
           backgroundColor: panelColor,
           borderColor: lineColor,
-          textStyle: { color: textColor },
+          textStyle: { color: textColor }
         },
-        legend: { type: 'scroll', selected, textStyle: { color: textColor } },
+        legend: { type: "scroll", selected, textStyle: { color: textColor } },
         grid: { left: 40, right: 20, top: 40, bottom: 40 },
         xAxis: {
-          type: 'category',
+          type: "category",
           data: dates,
           axisLabel: { color: textColor },
           axisLine: { lineStyle: { color: lineColor } },
-          axisTick: { lineStyle: { color: lineColor } },
+          axisTick: { lineStyle: { color: lineColor } }
         },
         yAxis: {
-          type: 'value',
+          type: "value",
           inverse: true,
           min: 1,
-          max: finalMax,
+          max: 50,
           axisLabel: { color: textColor },
           axisLine: { lineStyle: { color: lineColor } },
-          splitLine: { lineStyle: { color: lineColor } },
+          splitLine: { lineStyle: { color: lineColor } }
         },
         series,
         color,
-        textStyle: { color: textColor },
+        textStyle: { color: textColor }
       };
     };
 
     return {
-      gongChartOptions: buildLineOptions(gongKeywords, 'gong'),
-      sobangChartOptions: buildLineOptions(sobangKeywords, 'sobang'),
+      gongChartOptions: buildLineOptions(gongKeywords, "gong"),
+      sobangChartOptions: buildLineOptions(sobangKeywords, "sobang")
     };
   }, [
     seoEntries,
@@ -372,7 +372,7 @@ export default function Home() {
     sobangKeywords,
     gongColors,
     sobangColors,
-    theme,
+    theme
   ]);
 
   const modalChartOptions = useMemo(() => {
@@ -380,49 +380,43 @@ export default function Home() {
     const {
       text: textColor,
       line: lineColor,
-      panel: panelColor,
+      panel: panelColor
     } = getThemeVars();
     const sorted = [...seoEntries].sort((a, b) => a[0].localeCompare(b[0]));
     const dates = sorted.map(([d]) => d);
-    let maxRank = 1;
-    const data = sorted.map(([, details]) => {
+    const seriesData = sorted.map(([, details]) => {
       const r = details?.rankings?.[modalGroup]?.[modalKeyword];
-      const val = getRankValue(r);
-      const num = typeof val === 'number' ? val : null;
-      if (num !== null) maxRank = Math.max(maxRank, num);
-      return num;
+      return clampRank(getRankValue(r));
     });
-    const finalMax = maxRank + 1;
-    const seriesData = data.map((v) => (v == null ? finalMax : v));
-    const colorMap = modalGroup === 'gong' ? gongColors : sobangColors;
-    const color = colorMap[modalKeyword] || '#000000';
+    const colorMap = modalGroup === "gong" ? gongColors : sobangColors;
+    const color = colorMap[modalKeyword] || "#000000";
     return {
       tooltip: {
-        trigger: 'axis',
+        trigger: "axis",
         backgroundColor: panelColor,
         borderColor: lineColor,
-        textStyle: { color: textColor },
+        textStyle: { color: textColor }
       },
       grid: { left: 40, right: 20, top: 40, bottom: 40 },
       xAxis: {
-        type: 'category',
+        type: "category",
         data: dates,
         axisLabel: { color: textColor },
         axisLine: { lineStyle: { color: lineColor } },
-        axisTick: { lineStyle: { color: lineColor } },
+        axisTick: { lineStyle: { color: lineColor } }
       },
       yAxis: {
-        type: 'value',
+        type: "value",
         inverse: true,
         min: 1,
-        max: finalMax,
+        max: 50,
         axisLabel: { color: textColor },
         axisLine: { lineStyle: { color: lineColor } },
-        splitLine: { lineStyle: { color: lineColor } },
+        splitLine: { lineStyle: { color: lineColor } }
       },
-      series: [{ name: modalKeyword, type: 'line', data: seriesData }],
+      series: [{ name: modalKeyword, type: "line", data: seriesData }],
       color: [color],
-      textStyle: { color: textColor },
+      textStyle: { color: textColor }
     };
   }, [modalKeyword, modalGroup, seoEntries, gongColors, sobangColors, theme]);
 
@@ -444,9 +438,36 @@ export default function Home() {
     if (!window.confirm(`${targetDate} 데이터를 삭제하시겠습니까?`)) return;
     try {
       await deleteSeoData(targetDate);
-      setMsg('삭제되었습니다.');
+      setMsg("삭제되었습니다.");
     } catch (e) {
       setMsg(`삭제 중 오류: ${e.message}`);
+    }
+  };
+
+  const startEditNote = (d, currentNote) => {
+    setEditingDate(d);
+    setEditingNote(currentNote || "");
+  };
+
+  const cancelEditNote = () => {
+    setEditingDate(null);
+    setEditingNote("");
+  };
+
+  const handleNoteSave = async (d) => {
+    if (!hasPermission) {
+      alert("관리자 계정이 아닙니다.");
+      return;
+    }
+    try {
+      setNoteSaving(true);
+      await updateSeoNote(d, editingNote.trim());
+      cancelEditNote();
+      setMsg("비고가 저장되었습니다.");
+    } catch (e) {
+      alert(`비고 저장 중 오류: ${e.message}`);
+    } finally {
+      setNoteSaving(false);
     }
   };
 
@@ -456,7 +477,7 @@ export default function Home() {
     gongKeywords.forEach((k) => (initG[k] = null));
     setGongState(initG);
     const initGs = {};
-    gongKeywords.forEach((k) => (initGs[k] = ''));
+    gongKeywords.forEach((k) => (initGs[k] = ""));
     setGongSource(initGs);
     const initGc = {};
     gongKeywords.forEach((k) => (initGc[k] = 0));
@@ -465,7 +486,7 @@ export default function Home() {
     sobangKeywords.forEach((k) => (initS[k] = null));
     setSobangState(initS);
     const initSs = {};
-    sobangKeywords.forEach((k) => (initSs[k] = ''));
+    sobangKeywords.forEach((k) => (initSs[k] = ""));
     setSobangSource(initSs);
     const initSc = {};
     sobangKeywords.forEach((k) => (initSc[k] = 0));
@@ -481,7 +502,7 @@ export default function Home() {
 
   const handleFetchGong = async () => {
     if (!hasPermission) {
-      alert('관리자 계정이 아닙니다.');
+      alert("관리자 계정이 아닙니다.");
       return;
     }
     setIsGongDone(false);
@@ -506,12 +527,12 @@ export default function Home() {
     setGongSource((prev) => ({ ...prev, ...result.sources }));
     setGongCount((prev) => ({ ...prev, ...result.counts }));
     setIsGongDone(true);
-    setMsg('공무원 키워드 순위 가져오기가 완료되었습니다.');
+    setMsg("공무원 키워드 순위 가져오기가 완료되었습니다.");
   };
 
   const handleFetchSobang = async () => {
     if (!hasPermission) {
-      alert('관리자 계정이 아닙니다.');
+      alert("관리자 계정이 아닙니다.");
       return;
     }
     setIsSobangDone(false);
@@ -535,26 +556,26 @@ export default function Home() {
     setSobangSource((prev) => ({ ...prev, ...result.sources }));
     setSobangCount((prev) => ({ ...prev, ...result.counts }));
     setIsSobangDone(true);
-    setMsg('소방 키워드 순위 가져오기가 완료되었습니다.');
+    setMsg("소방 키워드 순위 가져오기가 완료되었습니다.");
   };
 
   const canSave = useMemo(() => {
     // 두 그룹 모두 완료 + 최소 하나라도 값 있음
-    const hasGong = Object.values(gongState).some((v) => v && v !== 'loading');
+    const hasGong = Object.values(gongState).some((v) => v && v !== "loading");
     const hasSobang = Object.values(sobangState).some(
-      (v) => v && v !== 'loading'
+      (v) => v && v !== "loading"
     );
     return isGongDone && isSobangDone && hasGong && hasSobang;
   }, [isGongDone, isSobangDone, gongState, sobangState]);
 
   const handleSave = async () => {
     if (!hasPermission) {
-      alert('관리자 계정이 아닙니다.');
+      alert("관리자 계정이 아닙니다.");
       return;
     }
     if (!canSave) {
       setMsg(
-        '공무원/소방 순위를 먼저 모두 가져오고(완료), 날짜를 선택해 저장하세요.'
+        "공무원/소방 순위를 먼저 모두 가져오고(완료), 날짜를 선택해 저장하세요."
       );
       return;
     }
@@ -572,11 +593,11 @@ export default function Home() {
 
       const rankings = {
         gong: combine(gongKeywords, gongState, gongSource, gongCount),
-        sobang: combine(sobangKeywords, sobangState, sobangSource, sobangCount),
+        sobang: combine(sobangKeywords, sobangState, sobangSource, sobangCount)
       };
       await logSeoData({ date, note: note.trim(), rankings });
-      setNote('');
-      setMsg('저장되었습니다.');
+      setNote("");
+      setMsg("저장되었습니다.");
     } catch (e) {
       setMsg(`저장 중 오류: ${e.message}`);
     } finally {
@@ -605,18 +626,18 @@ export default function Home() {
               <ul className={styles.keywordList}>
                 {gongKeywords.map((kw, idx) => {
                   const info =
-                    gongState[kw] === 'loading'
-                      ? { primary: '로드중', detail: '' }
+                    gongState[kw] === "loading"
+                      ? { primary: "로드중", detail: "" }
                       : gongState[kw] === null
-                      ? { primary: '집계전', detail: '' }
+                      ? { primary: "집계전", detail: "" }
                       : rankText({
                           rank: gongState[kw],
-                          top10Count: gongCount[kw],
+                          top10Count: gongCount[kw]
                         });
                   return (
                     <li key={kw} className={styles.keywordItem}>
                       <span>{idx + 1}</span>
-                      <span style={{ color: gongColors[kw] || '#000000' }}>
+                      <span style={{ color: gongColors[kw] || "#000000" }}>
                         {kw}
                       </span>
                       <span className={styles.keywordRank}>
@@ -626,14 +647,14 @@ export default function Home() {
                             {info.detail}
                           </span>
                         )}
-                        {gongSource[kw] && gongState[kw] !== 'loading' && (
+                        {gongSource[kw] && gongState[kw] !== "loading" && (
                           <a
                             className={styles.keywordSource}
                             href={gongSource[kw]}
-                            target='_blank'
-                            rel='noopener noreferrer'
+                            target="_blank"
+                            rel="noopener noreferrer"
                           >
-                            {gongSource[kw].replace(/^https?:\/\//, '')}
+                            {gongSource[kw].replace(/^https?:\/\//, "")}
                           </a>
                         )}
                       </span>
@@ -652,18 +673,18 @@ export default function Home() {
               <ul className={styles.keywordList}>
                 {sobangKeywords.map((kw, idx) => {
                   const info =
-                    sobangState[kw] === 'loading'
-                      ? { primary: '로드중', detail: '' }
+                    sobangState[kw] === "loading"
+                      ? { primary: "로드중", detail: "" }
                       : sobangState[kw] === null
-                      ? { primary: '집계전', detail: '' }
+                      ? { primary: "집계전", detail: "" }
                       : rankText({
                           rank: sobangState[kw],
-                          top10Count: sobangCount[kw],
+                          top10Count: sobangCount[kw]
                         });
                   return (
                     <li key={kw} className={styles.keywordItem}>
                       <span>{idx + 1}</span>
-                      <span style={{ color: sobangColors[kw] || '#000000' }}>
+                      <span style={{ color: sobangColors[kw] || "#000000" }}>
                         {kw}
                       </span>
                       <span className={styles.keywordRank}>
@@ -673,14 +694,14 @@ export default function Home() {
                             {info.detail}
                           </span>
                         )}
-                        {sobangSource[kw] && sobangState[kw] !== 'loading' && (
+                        {sobangSource[kw] && sobangState[kw] !== "loading" && (
                           <a
                             className={styles.keywordSource}
                             href={sobangSource[kw]}
-                            target='_blank'
-                            rel='noopener noreferrer'
+                            target="_blank"
+                            rel="noopener noreferrer"
                           >
-                            {sobangSource[kw].replace(/^https?:\/\//, '')}
+                            {sobangSource[kw].replace(/^https?:\/\//, "")}
                           </a>
                         )}
                       </span>
@@ -694,10 +715,10 @@ export default function Home() {
           {/* 입력/저장 영역 */}
           <div className={styles.form}>
             <div className={styles.formRow}>
-              <label htmlFor='seo_date'>날짜</label>
+              <label htmlFor="seo_date">날짜</label>
               <input
-                id='seo_date'
-                type='date'
+                id="seo_date"
+                type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 className={styles.input}
@@ -705,15 +726,15 @@ export default function Home() {
             </div>
 
             <div className={`${styles.formRow} ${styles.formRowAlignStart}`}>
-              <label htmlFor='seo_note' className={styles.noteLabel}>
+              <label htmlFor="seo_note" className={styles.noteLabel}>
                 비고
               </label>
               <textarea
-                id='seo_note'
+                id="seo_note"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 rows={4}
-                placeholder='비고를 입력하세요'
+                placeholder="비고를 입력하세요"
                 className={styles.textarea}
               />
             </div>
@@ -724,7 +745,7 @@ export default function Home() {
                 disabled={!canSave || saving}
                 className={styles.saveButton}
               >
-                {saving ? '저장 중...' : '검색 순위 저장'}
+                {saving ? "저장 중..." : "검색 순위 저장"}
               </button>
             </div>
 
@@ -735,7 +756,10 @@ export default function Home() {
 
       {/* 저장된 데이터 테이블 */}
       <div className={styles.savedData}>
-        <h3 className={styles.subTitle}>핵심키워드별 메가공 SEO 순위</h3>
+        <div className={styles.subTitleArea}>
+          <h3 className={styles.subTitle}>핵심키워드별 메가공 SEO 추이</h3>
+          <p className={styles.notice}>※ 50위 이하는 50으로 표기합니다.</p>
+        </div>
         {seoEntries.length === 0 ? (
           <p>저장된 데이터가 없습니다.</p>
         ) : (
@@ -761,7 +785,7 @@ export default function Home() {
                 <div className={styles.chartGroup}>
                   <h5 className={styles.chartTitle}>공무원</h5>
                   <ReactECharts
-                    key='gong-line'
+                    key="gong-line"
                     className={styles.chart}
                     option={gongChartOptions}
                     notMerge
@@ -770,7 +794,7 @@ export default function Home() {
                 <div className={styles.chartGroup}>
                   <h5 className={styles.chartTitle}>소방</h5>
                   <ReactECharts
-                    key='sobang-line'
+                    key="sobang-line"
                     className={styles.chart}
                     option={sobangChartOptions}
                     notMerge
@@ -792,18 +816,18 @@ export default function Home() {
                       <p className={styles.savedDate}>{d}</p>
                       <div className={styles.headerButtons}>
                         <button
-                          type='button'
+                          type="button"
                           className={styles.deleteButton}
                           onClick={() => handleDelete(d)}
                         >
                           삭제
                         </button>
                         <button
-                          type='button'
+                          type="button"
                           className={styles.toggleButton}
                           onClick={() => toggleCard(d)}
                         >
-                          {isOpen ? '-' : '+'}
+                          {isOpen ? "-" : "+"}
                         </button>
                       </div>
                     </div>
@@ -815,8 +839,8 @@ export default function Home() {
                             <h4 className={styles.tableTitle}>공무원</h4>
                             <table className={styles.dataTable}>
                               <colgroup>
-                                <col width='45%' />
-                                <col width='*' />
+                                <col width="45%" />
+                                <col width="*" />
                               </colgroup>
                               <thead>
                                 <tr>
@@ -825,59 +849,68 @@ export default function Home() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {gongKeywords.map((kw) => {
-                                  const r = gong[kw];
-                                  const value = getRankValue(r);
-                                  const src =
-                                    typeof r === 'object' && r?.source
-                                      ? r.source
-                                      : '';
-                                  const prevValue = prevGong[kw];
-                                  const info =
-                                    value === 'loading'
-                                      ? { primary: '로딩', detail: '' }
-                                      : value === null
-                                      ? { primary: '집계전', detail: '' }
-                                      : rankText(r);
-                                  return (
-                                    <tr key={kw}>
-                                      <td>
-                                        <button
-                                          type='button'
-                                          className={styles.keywordButton}
-                                          onClick={() => openModal(kw, 'gong')}
-                                          style={{
-                                            color: gongColors[kw] || '#000000',
-                                          }}
-                                        >
-                                          {kw}
-                                        </button>
-                                      </td>
-                                      <td>
-                                        {prevDetails &&
-                                          renderChange(value, prevValue)}
-                                        {info.primary}
-                                        {info.detail && (
-                                          <span
-                                            className={styles.tableRankDetail}
+                                {gongKeywords
+                                  .filter((kw) =>
+                                    Object.prototype.hasOwnProperty.call(
+                                      gong,
+                                      kw
+                                    )
+                                  )
+                                  .map((kw) => {
+                                    const r = gong[kw];
+                                    const value = getRankValue(r);
+                                    const src =
+                                      typeof r === "object" && r?.source
+                                        ? r.source
+                                        : "";
+                                    const prevValue = prevGong[kw];
+                                    const info =
+                                      value === "loading"
+                                        ? { primary: "로딩", detail: "" }
+                                        : value === null
+                                        ? { primary: "집계전", detail: "" }
+                                        : rankText(r);
+                                    return (
+                                      <tr key={kw}>
+                                        <td>
+                                          <button
+                                            type="button"
+                                            className={styles.keywordButton}
+                                            onClick={() =>
+                                              openModal(kw, "gong")
+                                            }
+                                            style={{
+                                              color: gongColors[kw] || "#000000"
+                                            }}
                                           >
-                                            {info.detail}
-                                          </span>
-                                        )}
-                                        {src && (
-                                          <a
-                                            className={styles.tableSource}
-                                            href={src}
-                                            target='_blank'
-                                            rel='noopener noreferrer'
-                                          >
-                                            {src.replace(/^https?:\/\//, '')}
-                                          </a>
-                                        )}
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
+                                            {kw}
+                                          </button>
+                                        </td>
+                                        <td>
+                                          {prevDetails &&
+                                            renderChange(value, prevValue)}
+                                          {info.primary}
+                                          {info.detail && (
+                                            <span
+                                              className={styles.tableRankDetail}
+                                            >
+                                              {info.detail}
+                                            </span>
+                                          )}
+                                          {src && (
+                                            <a
+                                              className={styles.tableSource}
+                                              href={src}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                            >
+                                              {src.replace(/^https?:\/\//, "")}
+                                            </a>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
                               </tbody>
                             </table>
                           </div>
@@ -887,8 +920,8 @@ export default function Home() {
                             <h4 className={styles.tableTitle}>소방</h4>
                             <table className={styles.dataTable}>
                               <colgroup>
-                                <col width='45%' />
-                                <col width='*' />
+                                <col width="45%" />
+                                <col width="*" />
                               </colgroup>
                               <thead>
                                 <tr>
@@ -897,62 +930,69 @@ export default function Home() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {sobangKeywords.map((kw) => {
-                                  const r = sobang[kw];
-                                  const value = getRankValue(r);
-                                  const src =
-                                    typeof r === 'object' && r?.source
-                                      ? r.source
-                                      : '';
-                                  const prevValue = prevSobang[kw];
-                                  const info =
-                                    value === 'loading'
-                                      ? { primary: '로딩', detail: '' }
-                                      : value === null
-                                      ? { primary: '집계전', detail: '' }
-                                      : rankText(r);
-                                  return (
-                                    <tr key={kw}>
-                                      <td>
-                                        <button
-                                          type='button'
-                                          className={styles.keywordButton}
-                                          onClick={() =>
-                                            openModal(kw, 'sobang')
-                                          }
-                                          style={{
-                                            color:
-                                              sobangColors[kw] || '#000000',
-                                          }}
-                                        >
-                                          {kw}
-                                        </button>
-                                      </td>
-                                      <td>
-                                        {prevDetails &&
-                                          renderChange(value, prevValue)}
-                                        {info.primary}
-                                        {info.detail && (
-                                          <span
-                                            className={styles.tableRankDetail}
+                                {sobangKeywords
+                                  .filter((kw) =>
+                                    Object.prototype.hasOwnProperty.call(
+                                      sobang,
+                                      kw
+                                    )
+                                  )
+                                  .map((kw) => {
+                                    const r = sobang[kw];
+                                    const value = getRankValue(r);
+                                    const src =
+                                      typeof r === "object" && r?.source
+                                        ? r.source
+                                        : "";
+                                    const prevValue = prevSobang[kw];
+                                    const info =
+                                      value === "loading"
+                                        ? { primary: "로딩", detail: "" }
+                                        : value === null
+                                        ? { primary: "집계전", detail: "" }
+                                        : rankText(r);
+                                    return (
+                                      <tr key={kw}>
+                                        <td>
+                                          <button
+                                            type="button"
+                                            className={styles.keywordButton}
+                                            onClick={() =>
+                                              openModal(kw, "sobang")
+                                            }
+                                            style={{
+                                              color:
+                                                sobangColors[kw] || "#000000"
+                                            }}
                                           >
-                                            {info.detail}
-                                          </span>
-                                        )}
-                                        {src && (
-                                          <a
-                                            className={styles.tableSource}
-                                            href={src}
-                                            target='_blank'
-                                            rel='noopener noreferrer'
-                                          >
-                                            {src.replace(/^https?:\/\//, '')}
-                                          </a>
-                                        )}
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
+                                            {kw}
+                                          </button>
+                                        </td>
+                                        <td>
+                                          {prevDetails &&
+                                            renderChange(value, prevValue)}
+                                          {info.primary}
+                                          {info.detail && (
+                                            <span
+                                              className={styles.tableRankDetail}
+                                            >
+                                              {info.detail}
+                                            </span>
+                                          )}
+                                          {src && (
+                                            <a
+                                              className={styles.tableSource}
+                                              href={src}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                            >
+                                              {src.replace(/^https?:\/\//, "")}
+                                            </a>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
                               </tbody>
                             </table>
                           </div>
@@ -960,9 +1000,51 @@ export default function Home() {
 
                         <div>
                           <strong>비고</strong>
-                          <div className={styles.note}>
-                            {renderNote(details?.note)}
-                          </div>
+                          {editingDate === d ? (
+                            <div className={styles.noteEdit}>
+                              <textarea
+                                className={styles.noteTextarea}
+                                rows={4}
+                                value={editingNote}
+                                onChange={(e) => setEditingNote(e.target.value)}
+                                placeholder="비고를 입력하세요"
+                              />
+                              <div className={styles.noteEditActions}>
+                                <button
+                                  type="button"
+                                  className={styles.noteSaveButton}
+                                  onClick={() => handleNoteSave(d)}
+                                  disabled={noteSaving}
+                                >
+                                  {noteSaving ? "저장 중..." : "저장"}
+                                </button>
+                                <button
+                                  type="button"
+                                  className={styles.noteCancelButton}
+                                  onClick={cancelEditNote}
+                                >
+                                  취소
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className={styles.note}>
+                                {renderNote(details?.note)}
+                              </div>
+                              {hasPermission && (
+                                <button
+                                  type="button"
+                                  className={styles.noteEditButton}
+                                  onClick={() =>
+                                    startEditNote(d, details?.note)
+                                  }
+                                >
+                                  수정
+                                </button>
+                              )}
+                            </>
+                          )}
                         </div>
                       </>
                     )}
@@ -988,7 +1070,7 @@ export default function Home() {
               />
             )}
             <button
-              type='button'
+              type="button"
               className={styles.modalClose}
               onClick={closeModal}
             >

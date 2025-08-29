@@ -1,43 +1,43 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import useKeywordPermission from '@/hooks/useKeywordPermission';
-import styles from '@/styles/header.module.scss';
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import useKeywordPermission from "@/hooks/useKeywordPermission";
+import styles from "@/styles/header.module.scss";
 
 export default function Header() {
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState("light");
   const { user, unverifiedEmail, logout } = useAuth();
   const hasPermission = useKeywordPermission();
   const router = useRouter();
 
   useEffect(() => {
-    const stored = localStorage.getItem('theme');
+    const stored = localStorage.getItem("theme");
     const prefersDark = window.matchMedia(
-      '(prefers-color-scheme: dark)'
+      "(prefers-color-scheme: dark)"
     ).matches;
-    const initial = stored || (prefersDark ? 'dark' : 'light');
+    const initial = stored || (prefersDark ? "dark" : "light");
     setTheme(initial);
-    document.documentElement.setAttribute('data-theme', initial);
+    document.documentElement.setAttribute("data-theme", initial);
   }, []);
 
   const toggleTheme = () => {
-    const next = theme === 'light' ? 'dark' : 'light';
+    const next = theme === "light" ? "dark" : "light";
     setTheme(next);
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('theme', next);
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("theme", next);
   };
 
   const handleLogout = async () => {
     try {
       await logout();
-      router.replace('/login');
+      router.replace("/login");
       router.refresh();
     } catch (err) {
-      console.error('Failed to sign out', err);
-      alert('로그아웃에 실패했습니다.');
+      console.error("Failed to sign out", err);
+      alert("로그아웃에 실패했습니다.");
     }
   };
 
@@ -46,11 +46,11 @@ export default function Header() {
   return (
     <header>
       <div className={styles.header_inner}>
-        <Link href='/'>
-          {theme === 'light' ? (
-            <img src='/images/logo_blk.png' alt='Nextstudy logo' />
+        <Link href="/">
+          {theme === "light" ? (
+            <img src="/images/logo_blk.png" alt="Nextstudy logo" />
           ) : (
-            <img src='/images/logo.png' alt='Nextstudy logo' />
+            <img src="/images/logo.png" alt="Nextstudy logo" />
           )}
         </Link>
 
@@ -67,15 +67,15 @@ export default function Header() {
             <>
               <span className={styles.welcome}>
                 {user.email}
-                {user.displayName ? `(${user.displayName})` : ''}님 반갑습니다.
+                {user.displayName ? `(${user.displayName})` : ""}님 반갑습니다.
               </span>
               {user.email === adminEmail && (
-                <Link href='/admin' className={styles.managerLink}>
+                <Link href="/admin" className={styles.managerLink}>
                   권한 설정
                 </Link>
               )}
               {hasPermission && (
-                <Link href='/keywords' className={styles.managerLink}>
+                <Link href="/keywords" className={styles.managerLink}>
                   키워드 관리자
                 </Link>
               )}
@@ -85,40 +85,40 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link href='/login' className={styles.managerLink}>
+              <Link href="/login" className={styles.managerLink}>
                 로그인
               </Link>
-              <Link href='/signup' className={styles.managerLink}>
+              <Link href="/signup" className={styles.managerLink}>
                 회원가입
               </Link>
             </>
           )}
 
-          <button onClick={toggleTheme} aria-label='Toggle theme'>
-            {theme === 'light' ? (
+          <button onClick={toggleTheme} aria-label="Toggle theme">
+            {theme === "light" ? (
               <svg
-                xmlns='http://www.w3.org/2000/svg'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                <path d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z' />
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
               </svg>
             ) : (
               <svg
-                xmlns='http://www.w3.org/2000/svg'
-                viewBox='0 0 24 24'
-                fill='none'
-                stroke='currentColor'
-                strokeWidth='2'
-                strokeLinecap='round'
-                strokeLinejoin='round'
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-                <circle cx='12' cy='12' r='5' />
-                <path d='M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42' />
+                <circle cx="12" cy="12" r="5" />
+                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
               </svg>
             )}
           </button>

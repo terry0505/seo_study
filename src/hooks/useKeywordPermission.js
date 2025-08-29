@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '@/firebaseClient';
-import { useAuth } from '@/context/AuthContext';
+import { useEffect, useState } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/firebaseClient";
+import { useAuth } from "@/context/AuthContext";
 
 export default function useKeywordPermission() {
   const { user } = useAuth();
@@ -14,7 +14,7 @@ export default function useKeywordPermission() {
       setAllowed(false);
       return;
     }
-    const ref = doc(db, 'permissions', 'keywordManagers');
+    const ref = doc(db, "permissions", "keywordManagers");
     const unsub = onSnapshot(ref, (snap) => {
       const uids = snap.data()?.uids || [];
       setAllowed(uids.includes(user.uid));

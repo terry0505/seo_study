@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
-import { onIdTokenChanged, signOut } from 'firebase/auth';
-import { auth } from '@/firebaseClient';
+import { createContext, useContext, useEffect, useState } from "react";
+import { onIdTokenChanged, signOut } from "firebase/auth";
+import { auth } from "@/firebaseClient";
 
 const AuthContext = createContext({ user: null, logout: async () => {} });
 

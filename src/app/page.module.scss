@@ -1,5 +1,5 @@
-@use '@/styles/mixins' as m;
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+@use "@/styles/mixins" as m;
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap");
 
 /* ===== Page ===== */
 .container {
@@ -15,7 +15,7 @@
 
   .title {
     margin: 0 0 8px;
-    font-family: 'Montserrat', sans-serif;
+    font-family: "Montserrat", sans-serif;
     font-size: 36px;
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -130,7 +130,7 @@
               align-items: center;
               /* 상태 표시 */
               &::before {
-                content: '';
+                content: "";
                 display: inline-block;
                 width: 8px;
                 height: 8px;
@@ -158,7 +158,7 @@
             }
 
             /* 텍스트 매칭 기반 색상(문자 그대로 매칭) */
-            &[data-state='loading'],
+            &[data-state="loading"],
             &:has(:where(:not(.x))) {
               /* 안전 장치 */
             }
@@ -287,6 +287,16 @@
     margin-bottom: 14px;
     font-size: 18px;
     font-weight: 700;
+  }
+
+  .subTitleArea {
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    .subTitle {
+      margin-bottom: 0;
+    }
   }
 
   /* ===== Saved Data ===== */
@@ -582,6 +592,50 @@
     background: linear-gradient(180deg, var(--bg-soft), transparent);
     line-height: 1.7;
     white-space: pre-wrap;
+  }
+
+  .noteEdit {
+    margin-top: 8px;
+  }
+
+  .noteTextarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px 12px;
+    line-height: 1.6;
+    resize: vertical;
+    @include m.soft-border;
+    background: var(--panel);
+  }
+
+  .noteEditActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .noteEditButton,
+  .noteSaveButton,
+  .noteCancelButton {
+    appearance: none;
+    border: none;
+    @include m.soft-border;
+    background: var(--panel);
+    color: var(--text-sub);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    &:focus-visible {
+      @include m.focus-ring;
+    }
   }
 }
 
