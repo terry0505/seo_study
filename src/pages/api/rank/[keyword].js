@@ -34,9 +34,9 @@ export default async function handler(req, res) {
 
     let currentPage = 1;
     let searchResults = [];
-    // let foundMegagongRank = null;
-    // let foundMegagongUrl = null;
-    // let megagongTop10Count = 0;
+    let foundNextRank = null;
+    let foundNextUrl = null;
+    let nextTop10Count = 0;
     let foundGongRank = null;
     let foundGongUrl = null;
     let gongTop10Count = 0;
@@ -69,27 +69,29 @@ export default async function handler(req, res) {
 
       searchResults = searchResults.concat(pageResults);
 
-      // const megagongResult = searchResults.find((result) =>
-      //   result.url.includes("megagong.net")
-      // );
-      // megagongTop10Count = searchResults.filter(
-      //   (r) => r.url.includes("megagong.net") && r.rank <= 10
-      // ).length;
+      const nextResult = searchResults.find((result) =>
+        result.url.includes("megagong.net")
+      );
       const gongResult = searchResults.find((result) =>
         result.url.includes("gong.conects.com")
       );
+
+      nextTop10Count = searchResults.filter(
+        (r) => r.url.includes("megagong.net") && r.rank <= 10
+      ).length;
       gongTop10Count = searchResults.filter(
         (r) => r.url.includes("gong.conects.com") && r.rank <= 10
       ).length;
 
-      // if (megagongResult) {
-      //   foundMegagongRank = megagongResult.rank;
-      //   foundMegagongUrl = megagongResult.url;
-      //   break;
-      // }
+      if (nextResult) {
+        foundNextRank = nextResult.rank;
+        foundNextUrl = nextResult.url;
+      }
       if (gongResult) {
         foundGongRank = gongResult.rank;
         foundGongUrl = gongResult.url;
+      }
+      if (foundNextRank !== null && foundGongRank !== null) {
         break;
       }
 
@@ -97,18 +99,18 @@ export default async function handler(req, res) {
     }
 
     await browser.close();
-    // res.status(200).json({
-    //   keyword,
-    //   activeRank: foundMegagongRank ? foundMegagongRank : "N/A",
-    //   sourceUrl: foundMegagongUrl,
-    //   top10Count: megagongTop10Count,
-    //   results: searchResults
-    // });
     res.status(200).json({
       keyword,
-      activeRank: foundGongRank ? foundGongRank : "N/A",
-      sourceUrl: foundGongUrl,
-      top10Count: gongTop10Count,
+      next: {
+        activeRank: foundNextRank !== null ? foundNextRank : "N/A",
+        sourceUrl: foundNextUrl,
+        top10Count: nextTop10Count
+      },
+      gong: {
+        activeRank: foundGongRank !== null ? foundGongRank : "N/A",
+        sourceUrl: foundGongUrl,
+        top10Count: gongTop10Count
+      },
       results: searchResults
     });
   } catch (error) {
