@@ -11,12 +11,10 @@ import styles from "./page.module.scss";
 export default function KeywordManager() {
   const router = useRouter();
   const allowed = useKeywordPermission();
-  const [gong, setGong] = useState([]);
-  const [sobang, setSobang] = useState([]);
-  const [newGong, setNewGong] = useState("");
-  const [newGongColor, setNewGongColor] = useState("#000000");
-  const [newSobang, setNewSobang] = useState("");
-  const [newSobangColor, setNewSobangColor] = useState("#000000");
+  const [site, setSite] = useState("megagong");
+  const [keywords, setKeywords] = useState([]);
+  const [newKeyword, setNewKeyword] = useState("");
+  const [newColor, setNewColor] = useState("#000000");
   const [drag, setDrag] = useState(null);
 
   useEffect(() => {
@@ -25,119 +23,118 @@ export default function KeywordManager() {
 
   useEffect(() => {
     if (allowed !== true || !db) return;
-    const unsubG = onSnapshot(doc(db, "keywords", "gong"), async (snap) => {
+    const unsub = onSnapshot(doc(db, "keywords", site), async (snap) => {
       const list = snap.data()?.list || [];
       const mapped = list.map((item) =>
         typeof item === "string" ? { keyword: item, color: "#000000" } : item
       );
-      setGong(mapped);
+      setKeywords(mapped);
       if (list.some((item) => typeof item === "string")) {
-        await setDoc(doc(db, "keywords", "gong"), { list: mapped });
+        await setDoc(doc(db, "keywords", site), { list: mapped });
       }
     });
-    const unsubS = onSnapshot(doc(db, "keywords", "sobang"), async (snap) => {
-      const list = snap.data()?.list || [];
-      const mapped = list.map((item) =>
-        typeof item === "string" ? { keyword: item, color: "#000000" } : item
-      );
-      setSobang(mapped);
-      if (list.some((item) => typeof item === "string")) {
-        await setDoc(doc(db, "keywords", "sobang"), { list: mapped });
-      }
-    });
-    return () => {
-      unsubG();
-      unsubS();
-    };
-  }, [allowed]);
+    return () => unsub();
+  }, [allowed, site]);
 
   if (allowed !== true) return null;
 
-  const update = async (group, arr) => {
+  const update = async (arr) => {
     if (!db) return;
-    await setDoc(doc(db, "keywords", group), { list: arr });
+    await setDoc(doc(db, "keywords", site), { list: arr });
   };
 
-  const add = async (group) => {
-    const value = group === "gong" ? newGong.trim() : newSobang.trim();
-    const color = group === "gong" ? newGongColor : newSobangColor;
+  const add = async () => {
+    const value = newKeyword.trim();
     if (!value) return;
-    const item = { keyword: value, color };
-    const arr = group === "gong" ? [...gong, item] : [...sobang, item];
-    await update(group, arr);
-    if (group === "gong") {
-      setNewGong("");
-      setNewGongColor("#000000");
-    } else {
-      setNewSobang("");
-      setNewSobangColor("#000000");
-    }
+    const item = { keyword: value, color: newColor };
+    const arr = [...keywords, item];
+    await update(arr);
+    setNewKeyword("");
+    setNewColor("#000000");
   };
 
-  const remove = async (group, index) => {
-    const arr = group === "gong" ? [...gong] : [...sobang];
+  const remove = async (index) => {
+    const arr = [...keywords];
     arr.splice(index, 1);
-    await update(group, arr);
+    await update(arr);
   };
 
-  const changeColor = async (group, index, color) => {
-    const arr = group === "gong" ? [...gong] : [...sobang];
+  const changeColor = async (index, color) => {
+    const arr = [...keywords];
     const item = arr[index];
     arr[index] =
       typeof item === "string" ? { keyword: item, color } : { ...item, color };
-    if (group === "gong") setGong(arr);
-    else setSobang(arr);
-    await update(group, arr);
+    setKeywords(arr);
+    await update(arr);
   };
 
-  const onDragStart = (group, index) => {
-    setDrag({ group, index });
+  const onDragStart = (index) => {
+    setDrag(index);
   };
 
-  const onDrop = async (group, index) => {
-    if (!drag || drag.group !== group) return setDrag(null);
-    const arr = group === "gong" ? [...gong] : [...sobang];
-    const [moved] = arr.splice(drag.index, 1);
+  const onDrop = async (index) => {
+    if (drag === null) return setDrag(null);
+    const arr = [...keywords];
+    const [moved] = arr.splice(drag, 1);
     arr.splice(index, 0, moved);
     setDrag(null);
-    await update(group, arr);
+    await update(arr);
   };
+
+  const siteLabel = site === "megagong" ? "넥스트공무원" : "공단기";
 
   return (
     <div className={styles.container}>
       <h1>키워드 관리자</h1>
+      <div className={styles.tabBar}>
+        <button
+          type="button"
+          className={`${styles.tabButton} ${
+            site === "megagong" ? styles.activeTab : ""
+          }`}
+          onClick={() => setSite("megagong")}
+        >
+          넥스트공무원
+        </button>
+        <button
+          type="button"
+          className={`${styles.tabButton} ${
+            site === "gong" ? styles.activeTab : ""
+          }`}
+          onClick={() => setSite("gong")}
+        >
+          공단기
+        </button>
+      </div>
       <div className={styles.groups}>
         <div className={styles.group}>
-          <h2 className={styles.groupTitle}>공무원</h2>
+          <h2 className={styles.groupTitle}>{siteLabel}</h2>
           <ul className={styles.list}>
-            {gong.map((kw, idx) => (
+            {keywords.map((kw, idx) => (
               <li
                 key={kw.keyword}
                 className={styles.item}
                 draggable
-                onDragStart={() => onDragStart("gong", idx)}
+                onDragStart={() => onDragStart(idx)}
                 onDragOver={(e) => e.preventDefault()}
-                onDrop={() => onDrop("gong", idx)}
+                onDrop={() => onDrop(idx)}
               >
                 <div className={styles.keyword}>
                   <input
                     type="color"
                     className={styles.colorInput}
                     value={kw.color || "#000000"}
-                    onChange={(e) => changeColor("gong", idx, e.target.value)}
+                    onChange={(e) => changeColor(idx, e.target.value)}
                   />
                   <input
                     type="text"
                     className={styles.colorTextInput}
                     value={kw.color || "#000000"}
-                    onChange={(e) => changeColor("gong", idx, e.target.value)}
+                    onChange={(e) => changeColor(idx, e.target.value)}
                   />
                   <span>{kw.keyword}</span>
                 </div>
-                <button
-                  className={styles.button}
-                  onClick={() => remove("gong", idx)}
-                >
+                <button className={styles.button} onClick={() => remove(idx)}>
                   삭제
                 </button>
               </li>
@@ -147,84 +144,23 @@ export default function KeywordManager() {
             <input
               type="color"
               className={styles.colorInput}
-              value={newGongColor}
-              onChange={(e) => setNewGongColor(e.target.value)}
+              value={newColor}
+              onChange={(e) => setNewColor(e.target.value)}
             />
             <input
               type="text"
               className={styles.colorTextInput}
-              value={newGongColor}
-              onChange={(e) => setNewGongColor(e.target.value)}
+              value={newColor}
+              onChange={(e) => setNewColor(e.target.value)}
             />
             <input
               type="text"
               className={styles.keywordInput}
-              value={newGong}
-              onChange={(e) => setNewGong(e.target.value)}
+              value={newKeyword}
+              onChange={(e) => setNewKeyword(e.target.value)}
               placeholder="키워드 추가"
             />
-            <button className={styles.button} onClick={() => add("gong")}>
-              추가
-            </button>
-          </div>
-        </div>
-        <div className={styles.group}>
-          <h2 className={styles.groupTitle}>소방</h2>
-          <ul className={styles.list}>
-            {sobang.map((kw, idx) => (
-              <li
-                key={kw.keyword}
-                className={styles.item}
-                draggable
-                onDragStart={() => onDragStart("sobang", idx)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => onDrop("sobang", idx)}
-              >
-                <div className={styles.keyword}>
-                  <input
-                    type="color"
-                    className={styles.colorInput}
-                    value={kw.color || "#000000"}
-                    onChange={(e) => changeColor("sobang", idx, e.target.value)}
-                  />
-                  <input
-                    type="text"
-                    className={styles.colorTextInput}
-                    value={kw.color || "#000000"}
-                    onChange={(e) => changeColor("sobang", idx, e.target.value)}
-                  />
-                  <span>{kw.keyword}</span>
-                </div>
-                <button
-                  className={styles.button}
-                  onClick={() => remove("sobang", idx)}
-                >
-                  삭제
-                </button>
-              </li>
-            ))}
-          </ul>
-          <div className={styles.controls}>
-            <input
-              type="color"
-              className={styles.colorInput}
-              value={newSobangColor}
-              onChange={(e) => setNewSobangColor(e.target.value)}
-            />
-            <input
-              type="text"
-              className={styles.colorTextInput}
-              value={newSobangColor}
-              onChange={(e) => setNewSobangColor(e.target.value)}
-            />
-            <input
-              type="text"
-              className={styles.keywordInput}
-              value={newSobang}
-              onChange={(e) => setNewSobang(e.target.value)}
-              placeholder="키워드 추가"
-            />
-            <button className={styles.button} onClick={() => add("sobang")}>
+            <button className={styles.button} onClick={add}>
               추가
             </button>
           </div>
@@ -236,3 +172,4 @@ export default function KeywordManager() {
     </div>
   );
 }
+
