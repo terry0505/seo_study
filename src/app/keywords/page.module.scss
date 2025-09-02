@@ -10,6 +10,24 @@
   }
 }
 
+.tabBar {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tabButton {
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  cursor: pointer;
+}
+
+.activeTab {
+  font-weight: 700;
+  border-bottom: 2px solid currentColor;
+}
+
 .groups {
   display: grid;
   grid-template-columns: 1fr 1fr;

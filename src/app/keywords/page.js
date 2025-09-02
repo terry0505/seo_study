@@ -18,6 +18,7 @@ export default function KeywordManager() {
   const [newSobang, setNewSobang] = useState("");
   const [newSobangColor, setNewSobangColor] = useState("#000000");
   const [drag, setDrag] = useState(null);
+  const [site, setSite] = useState("megagong");
 
   useEffect(() => {
     if (allowed === false) router.replace("/");
@@ -106,6 +107,26 @@ export default function KeywordManager() {
   return (
     <div className={styles.container}>
       <h1>키워드 관리자</h1>
+      <div className={styles.tabBar}>
+        <button
+          type="button"
+          className={`${styles.tabButton} ${
+            site === "megagong" ? styles.activeTab : ""
+          }`}
+          onClick={() => setSite("megagong")}
+        >
+          넥스트공무원
+        </button>
+        <button
+          type="button"
+          className={`${styles.tabButton} ${
+            site === "gong" ? styles.activeTab : ""
+          }`}
+          onClick={() => setSite("gong")}
+        >
+          공단기
+        </button>
+      </div>
       <div className={styles.groups}>
         <div className={styles.group}>
           <h2 className={styles.groupTitle}>공무원</h2>

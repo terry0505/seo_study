@@ -9,7 +9,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "GET 요청만 허용됩니다." });
   }
 
-  const { keyword } = req.query;
+  const { keyword, site } = req.query;
 
   if (!keyword) {
     return res.status(400).json({ error: "키워드를 입력해주세요." });
@@ -33,13 +33,12 @@ export default async function handler(req, res) {
     );
 
     let currentPage = 1;
+    const targetDomain =
+      site === "gong" ? "gong.conects.com" : "megagong.net";
     let searchResults = [];
-    // let foundMegagongRank = null;
-    // let foundMegagongUrl = null;
-    // let megagongTop10Count = 0;
-    let foundGongRank = null;
-    let foundGongUrl = null;
-    let gongTop10Count = 0;
+    let foundRank = null;
+    let foundUrl = null;
+    let top10Count = 0;
 
     while (currentPage <= 5) {
       const searchURL = `https://www.google.com/search?q=${encodeURIComponent(
@@ -69,27 +68,16 @@ export default async function handler(req, res) {
 
       searchResults = searchResults.concat(pageResults);
 
-      // const megagongResult = searchResults.find((result) =>
-      //   result.url.includes("megagong.net")
-      // );
-      // megagongTop10Count = searchResults.filter(
-      //   (r) => r.url.includes("megagong.net") && r.rank <= 10
-      // ).length;
-      const gongResult = searchResults.find((result) =>
-        result.url.includes("gong.conects.com")
+      const domainResult = searchResults.find((result) =>
+        result.url.includes(targetDomain)
       );
-      gongTop10Count = searchResults.filter(
-        (r) => r.url.includes("gong.conects.com") && r.rank <= 10
+      top10Count = searchResults.filter(
+        (r) => r.url.includes(targetDomain) && r.rank <= 10
       ).length;
 
-      // if (megagongResult) {
-      //   foundMegagongRank = megagongResult.rank;
-      //   foundMegagongUrl = megagongResult.url;
-      //   break;
-      // }
-      if (gongResult) {
-        foundGongRank = gongResult.rank;
-        foundGongUrl = gongResult.url;
+      if (domainResult) {
+        foundRank = domainResult.rank;
+        foundUrl = domainResult.url;
         break;
       }
 
@@ -97,18 +85,11 @@ export default async function handler(req, res) {
     }
 
     await browser.close();
-    // res.status(200).json({
-    //   keyword,
-    //   activeRank: foundMegagongRank ? foundMegagongRank : "N/A",
-    //   sourceUrl: foundMegagongUrl,
-    //   top10Count: megagongTop10Count,
-    //   results: searchResults
-    // });
     res.status(200).json({
       keyword,
-      activeRank: foundGongRank ? foundGongRank : "N/A",
-      sourceUrl: foundGongUrl,
-      top10Count: gongTop10Count,
+      activeRank: foundRank ? foundRank : "N/A",
+      sourceUrl: foundUrl,
+      top10Count,
       results: searchResults
     });
   } catch (error) {
