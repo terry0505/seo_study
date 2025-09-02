@@ -73,14 +73,11 @@ function rankText(value) {
 }
 
 // ====== API ======
-async function fetchRank(keyword, site) {
+async function fetchRank(keyword) {
   try {
-    const res = await fetch(
-      `/api/rank/${encodeURIComponent(keyword)}?site=${site}`,
-      {
-        method: "GET"
-      }
-    );
+    const res = await fetch(`/api/rank/${encodeURIComponent(keyword)}`, {
+      method: "GET"
+    });
     if (!res.ok) throw new Error("검색 실패");
     const data = await res.json();
     return {
@@ -97,7 +94,6 @@ async function fetchRank(keyword, site) {
 /** 키워드 배열을 1초 간격으로 순차 fetch + 실패 재시도 */
 async function fetchSequentially(
   keywords,
-  site,
   retryCount = 5,
   onUpdate = () => {}
 ) {
@@ -112,7 +108,7 @@ async function fetchSequentially(
   }
 
   for (const kw of keywords) {
-    const r = await fetchRank(kw, site);
+    const r = await fetchRank(kw);
     results[r.keyword] = r.rank;
     sources[r.keyword] = r.source;
     counts[r.keyword] = r.top10Count;
@@ -127,7 +123,7 @@ async function fetchSequentially(
     failed = [];
     for (const kw of retryTargets) {
       onUpdate(kw, "loading", "", 0);
-      const r = await fetchRank(kw, site);
+      const r = await fetchRank(kw);
       results[r.keyword] = r.rank;
       sources[r.keyword] = r.source;
       counts[r.keyword] = r.top10Count;
@@ -242,7 +238,6 @@ export default function Home() {
   const [msg, setMsg] = useState(null);
   const [theme, setTheme] = useState("light");
   const [isNotProdDomain, setIsNotProdDomain] = useState(false);
-  const [site, setSite] = useState("megagong");
   useEffect(() => {
     if (typeof window !== "undefined") {
       setIsNotProdDomain(
@@ -517,7 +512,6 @@ export default function Home() {
     const nextCount = { ...gongCount };
     const result = await fetchSequentially(
       gongKeywords,
-      site,
       5,
       (kw, val, src, cnt) => {
         nextRank[kw] = val;
@@ -548,7 +542,6 @@ export default function Home() {
     const nextCount = { ...sobangCount };
     const result = await fetchSequentially(
       sobangKeywords,
-      site,
       5,
       (kw, val, src, cnt) => {
         nextRank[kw] = val;
@@ -617,26 +610,6 @@ export default function Home() {
       <h1 className={styles.title}>
         NS <span>(Next SEO Master)</span>
       </h1>
-      <div className={styles.tabBar}>
-        <button
-          className={`${styles.tabButton} ${
-            site === "megagong" ? styles.activeTab : ""
-          }`}
-          onClick={() => setSite("megagong")}
-          type="button"
-        >
-          넥스트공무원
-        </button>
-        <button
-          className={`${styles.tabButton} ${
-            site === "gong" ? styles.activeTab : ""
-          }`}
-          onClick={() => setSite("gong")}
-          type="button"
-        >
-          공단기
-        </button>
-      </div>
       {hasPermission && isNotProdDomain && (
         <>
           <h2 className={styles.subTitle}>구글 검색 순위 비교(SEO)</h2>

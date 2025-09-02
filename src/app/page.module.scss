@@ -29,24 +29,6 @@
     font-size: 14px;
   }
 
-  .tabBar {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-
-  .tabButton {
-    padding: 6px 12px;
-    border: 1px solid var(--line);
-    background: var(--panel);
-    cursor: pointer;
-  }
-
-  .activeTab {
-    font-weight: 700;
-    border-bottom: 2px solid currentColor;
-  }
-
   /* ===== Crawling Area ===== */
   .keywordGrid {
     display: grid;
