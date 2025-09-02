@@ -16,6 +16,7 @@ export default function KeywordManager() {
   const [newKeyword, setNewKeyword] = useState("");
   const [newColor, setNewColor] = useState("#000000");
   const [drag, setDrag] = useState(null);
+  const [site, setSite] = useState("megagong");
 
   useEffect(() => {
     if (allowed === false) router.replace("/");
