@@ -16,7 +16,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "echarts": "^5.5.0",
-    "echarts-for-react": "^3.0.2"
+    "echarts-for-react": "^3.0.2",
+    "react-quill": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "22.13.10",
