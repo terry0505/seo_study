@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import useKeywordPermission from "@/hooks/useKeywordPermission";
 import dynamic from "next/dynamic";
 import styles from "./page.module.scss";
+import RichTextEditor from "@/components/RichTextEditor";
 
 const ReactECharts = dynamic(() => import("echarts-for-react"), {
   ssr: false
@@ -47,15 +48,10 @@ function getThemeVars() {
   };
 }
 
-/** 비고 줄바꿈 처리 */
+/** 비고 HTML 출력 */
 function renderNote(note) {
   if (!note || !note.trim()) return "없음";
-  return note.split("\n").map((line, idx) => (
-    <span key={idx}>
-      {line}
-      <br />
-    </span>
-  ));
+  return <span dangerouslySetInnerHTML={{ __html: note }} />;
 }
 
 /** rank 표시 텍스트 */
@@ -729,11 +725,10 @@ export default function Home() {
               <label htmlFor="seo_note" className={styles.noteLabel}>
                 비고
               </label>
-              <textarea
+              <RichTextEditor
                 id="seo_note"
                 value={note}
-                onChange={(e) => setNote(e.target.value)}
-                rows={4}
+                onChange={setNote}
                 placeholder="비고를 입력하세요"
                 className={styles.textarea}
               />
@@ -1002,11 +997,10 @@ export default function Home() {
                           <strong>비고</strong>
                           {editingDate === d ? (
                             <div className={styles.noteEdit}>
-                              <textarea
+                              <RichTextEditor
                                 className={styles.noteTextarea}
-                                rows={4}
                                 value={editingNote}
-                                onChange={(e) => setEditingNote(e.target.value)}
+                                onChange={setEditingNote}
                                 placeholder="비고를 입력하세요"
                               />
                               <div className={styles.noteEditActions}>
